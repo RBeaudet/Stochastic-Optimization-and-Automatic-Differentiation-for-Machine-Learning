@@ -60,7 +60,7 @@ class reg_L2(loss):
         return -2 * x * (y - np.dot(x, Theta))
 
     def hess(self, i, *kargs):
-        x = self.X[[i], :].transpose()
+        x = self.X[[i], :].reshape(np.shape(self.X)[1] ,1)
         return 2 * np.dot(x, np.transpose(x))
 
 

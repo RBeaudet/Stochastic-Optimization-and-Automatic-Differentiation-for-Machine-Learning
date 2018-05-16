@@ -2,6 +2,7 @@ import numpy as np
 import losses
 import utils
 import time
+from memory_profiler import profile
 
 class genral_model(object):
     '''
@@ -18,6 +19,7 @@ class genral_model(object):
         self.Theta = None
         self.Loss = None
 
+    #@profile
     def fit(self, X, K, T, learning_rate, loss='reg_L2', Theta_0=[-1, 1], decay=None, rate=None, save_at_every_step=False):
         '''
         :param X: Data (can contain y and X) (np.array)
@@ -94,7 +96,7 @@ class genral_model(object):
 
             Theta_0 = theta
             if not save_at_every_step:
-                self.add_memory_entry(theta.tolist(), self.Loss.mean_loss(i, theta), time.time() - start_time)
+                self.add_memory_entry(theta.tolist(), self.Loss.mean_loss(theta), time.time() - start_time)
 
         self.Theta = theta
 
@@ -160,7 +162,7 @@ class CM(genral_model):
         update = self.Loss.grad(i, theta) - self.Loss.grad(i, Theta_0)\
                - np.linalg.multi_dot([A, np.transpose(S), self.Loss.hess(i, theta),
                                       S, np.transpose(A), (theta - Theta_0)]) +\
-               gradient + np.dot(np.dot(A, np.dot(np.transpose(A), (theta - Theta_0))))
+               gradient + np.dot(A, np.dot(np.transpose(A), (theta - Theta_0)))
 
         self.updates.append(update)
 
@@ -193,7 +195,7 @@ class AM(CM):
                             (np.identity(self.d) - np.dot(S, np.transpose(A)))]) +
                         np.linalg.multi_dot([self.Loss.hess(i, theta), S, np.transpose(A)]),
                         (theta - Theta_0)) +\
-               gradient + np.dot(np.dot(A, np.dot(np.transpose(A), (theta - Theta_0))))
+               gradient + np.dot(A, np.dot(np.transpose(A), (theta - Theta_0)))
 
         self.updates.append(update)
 
@@ -204,9 +206,9 @@ class AM(CM):
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
-    X = np.random.normal(size=(1000, 4))
-    Theta = np.array([2, 1, 7, 90])
-    y = np.dot(X, Theta) + np.random.normal(scale=0.1, size=(1000,))
+    X = np.random.normal(size=(10000, 1000))
+    Theta = np.random.normal(size=(1000,1))
+    y = np.dot(X, Theta).reshape((10000,)) + np.random.normal(scale=0.1, size=(10000,))
 
     # svrg = SVRG2()
     # svrg.fit([y, X], K=10, T=200, learning_rate=0.001, save_at_every_step=True)
